@@ -1,0 +1,11 @@
+# Secrets + heavy dirs — never submit these
+backend/.env
+frontend/.env.local
+frontend/node_modules/
+frontend/.next/
+backend/__pycache__/
+frontend/tsconfig.tsbuildinfo
+*.mp3
+
+frontend_dev.log
+frontend/frontend_dev.log
