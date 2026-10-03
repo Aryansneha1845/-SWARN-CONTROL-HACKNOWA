@@ -141,7 +141,7 @@ slide_title("08 · BHARAT-FIRST USABILITY", "Built for Ranchi, not just metros."
 slide_title("09 · IMPACT & ASK", "Hum scam nahi batate, control wapas dete hain.", [
     ("30% Resilience: victim goes from 3 disconnected fragments to 1 actionable trail + report drafts.", GOLD),
     ("15% Feasibility: zero-cost stack (free tiers, no cards) — deployable to investor-protection circles tomorrow.", GOLD),
-    ("Live Demo: https://<your-app>.vercel.app  ·  Backend: https://<your-svc>.onrender.com  ·  GitHub: github.com/Aryansneha1845/-SWARN-CONTROL-HACKNOWA", CYAN),
+    ("Live Demo: https://swarn-control-hacknowa.vercel.app  ·  Backend: https://swarn-control-hacknowa.onrender.com  ·  GitHub: github.com/Aryansneha1845/-SWARN-CONTROL-HACKNOWA", CYAN),
     ("Video (4-min, Praveen case): https://youtu.be/c0CnQBTWU3E (Unlisted) + this deck + working prototype = complete submission.", DIM),
 ], note="Links verified Oct 2026: live demo + video + backend health all green.")
 

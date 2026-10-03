@@ -6,9 +6,9 @@
 HackNowa Global Hackathon 2026 — Digital Safety & Cybersecurity track.
 Solo build, Ethereum only, zero-cost stack. Original work, built for this hackathon.
 
-## Live Demo (HackNowa — fresh deploys, links after deploy)
-- Frontend: `https://<your-app>.vercel.app`
-- Backend: `https://<your-svc>.onrender.com` (`/health` → ok, `/docs` 404 in prod)
+## Live Demo (HackNowa — verified Oct 2026)
+- Frontend: `https://swarn-control-hacknowa.vercel.app`
+- Backend: `https://swarn-control-hacknowa.onrender.com` (`/health` → ok, `/docs` 404 in prod)
 - Video (4-min, Praveen case): `https://youtu.be/c0CnQBTWU3E` (Unlisted)
 - PPT: `SWARN-CONTROL.AI.pptx` in repo root
 
