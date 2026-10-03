@@ -13,7 +13,7 @@ import os
 from pathlib import Path
 
 from dotenv import load_dotenv
-from fastapi import FastAPI, Request, Header, HTTPException, Depends
+from fastapi import FastAPI, Request, Header, HTTPException, Depends, UploadFile, File
 
 # Allow both `uvicorn main:app` (from backend/) and `uvicorn backend.main:app` (from root)
 import sys as _sys
@@ -32,6 +32,7 @@ import resolver  # noqa: E402
 import trace as trace_mod  # noqa: E402
 import upi_parser  # noqa: E402
 import control  # noqa: E402
+import threat_intel  # noqa: E402
 from security import (  # noqa: E402
     sanitize_text, sanitize_hash, api_key_ok, add_security_headers,
 )
@@ -140,11 +141,45 @@ def parse_upi(request: Request, body: dict):
     return {"parsed": upi_parser.parse_text(text)}
 
 
+@app.post("/parse-upi-image", dependencies=[Depends(require_key)])
+@limiter.limit("10/minute")
+def parse_upi_image(request: Request, file: UploadFile = File(...)):
+    """UPI payment screenshot -> OCR -> parsed amount/VPA/UTR + raw OCR text.
+    Returns 503 when the Tesseract binary is missing on this host (e.g. prod)."""
+    import tempfile
+    if (file.content_type or "") not in ("image/png", "image/jpeg", "image/webp"):
+        raise HTTPException(status_code=415, detail="PNG/JPEG/WebP screenshot only")
+    data = file.file.read()
+    if len(data) > 2 * 1024 * 1024:
+        raise HTTPException(status_code=413, detail="Screenshot too large (2 MB max)")
+    suffix = ".png" if file.content_type == "image/png" else (
+        ".jpg" if file.content_type == "image/jpeg" else ".webp")
+    with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp:
+        tmp.write(data)
+        path = tmp.name
+    try:
+        parsed = upi_parser.parse_image(path)
+    finally:
+        try:
+            os.unlink(path)
+        except OSError:
+            pass
+    if "error" in parsed:
+        return JSONResponse(status_code=503, content={
+            "parsed": {}, "ocr_text": "",
+            "detail": "OCR unavailable on this host — paste the UPI text manually."})
+    parsed["ocr_text"] = sanitize_text(parsed.get("ocr_text", ""), 500)
+    return {"parsed": parsed, "ocr_text": parsed["ocr_text"]}
+
+
 @app.post("/investigate", dependencies=[Depends(require_key)])
 @limiter.limit("10/minute")
 def investigate(request: Request, body: InvestigateIn):
     entities = narrative.extract(body.message_text)
     upi = _merge_upi(body.upi, body.upi_text)
+    lure_urls = [e.get("value", "") for e in entities
+                 if isinstance(e, dict) and e.get("type") == "website"][:10]
+    url_reputation = threat_intel.check_urls(lure_urls)
     chain = trace_mod.trace(body.tx_hash) if body.tx_hash else json.loads(
         (FIX / "praveen_chain.json").read_text(encoding="utf-8"))
     links = resolver.resolve(entities, upi, chain)
@@ -159,7 +194,8 @@ def investigate(request: Request, body: InvestigateIn):
              f"Aage mat bhejo. Chakshu pe report karo, parivar ko alert bhejo.")
     return {"entities": entities, "upi": upi, "links": links, "kill_chain": kc,
             "chain": chain, "current_destination": dest, "hindi_summary": hindi,
-            "hindi_summary_deva": control.briefing_deva(amt, vpa)}
+            "hindi_summary_deva": control.briefing_deva(amt, vpa),
+            "url_reputation": url_reputation}
 
 
 @app.post("/control-pack", dependencies=[Depends(require_key)])

@@ -17,6 +17,14 @@ export const api = {
     post<any>('/api/investigate', { message_text, upi_text, upi: {}, tx_hash }),
   controlPack: (upi_text: string, upi: any, entities: any[], current_destination: string) =>
     post<any>('/api/control-pack', { upi_text, upi, entities, current_destination }),
+  parseImage: async (file: File) => {
+    const fd = new FormData();
+    fd.append('file', file);
+    const r = await fetch('/api/parse-upi-image', { method: 'POST', body: fd });
+    const data = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(`/api/parse-upi-image → ${r.status}${data?.detail ? `: ${data.detail}` : ''}`);
+    return data as any;
+  },
 };
 
 export const PRESETS = {

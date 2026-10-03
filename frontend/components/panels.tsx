@@ -214,6 +214,18 @@ export function IntelPanel({ caseData }: { caseData: CaseModel }) {
       {caseData.nodes.some(n => n.id.startsWith('out_')) && (
         <div className="finding warn">Post-receipt dispersion across wallets — possible obfuscation. <Badge kind="infer">MODEL INFERENCE</Badge></div>
       )}
+      <h4>LURE-URL REPUTATION (SAFE BROWSING)</h4>
+      {(caseData.urlReputation || []).length === 0 && (
+        <div className="dim" style={{ fontSize: 12 }}>No URLs extracted from this message — nothing to check.</div>
+      )}
+      {(caseData.urlReputation || []).map((u, i) => (
+        <div className={u.status === 'FLAGGED' ? 'finding crit' : 'finding ok'} key={i}>
+          <span className="mono" style={{ fontSize: 11 }}>{u.url}</span>
+          <div><Badge kind={u.status === 'FLAGGED' ? 'hi' : u.status === 'CLEAR' ? 'lo' : 'infer'}>
+            {u.status === 'FLAGGED' ? `FLAGGED: ${(u.threats || []).join(', ') || 'THREAT'}` : u.status === 'CLEAR' ? 'NO KNOWN THREAT' : 'UNCHECKED'}
+          </Badge></div>
+        </div>
+      ))}
       <h4>RECOMMENDED INVESTIGATION STEPS</h4>
       <ol style={{ fontSize: 12, paddingLeft: 18, margin: 0 }}>
         <li>Confirm beneficiary VPA ownership via bank / 1930 lien request.</li>

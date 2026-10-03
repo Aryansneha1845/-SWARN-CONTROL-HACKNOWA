@@ -37,6 +37,7 @@ export interface CaseModel {
   killChain: { stage: string; done: boolean }[];
   hindi: string; hindiDeva: string; destination: string; live: boolean;
   stats: { entities: number; txns: number; links: number; evidence: number };
+  urlReputation: { url: string; status: string; threats: string[] }[];
 }
 
 export const RAIL_COLOR: Record<Rail, string> = {
@@ -132,6 +133,7 @@ export function buildCase(inv: any, pack: any, caseId = 'SWRN-2026-1047'): CaseM
     caseId, nodes, edges, events, evidence, killChain,
     hindi: String(inv.hindi_summary || ''), hindiDeva: String(inv.hindi_summary_deva || ''), destination: String(inv.current_destination || ''),
     live, stats: { entities: nodes.length, txns: (chain.after || []).length + 2, links: edges.length, evidence: evidence.length },
+    urlReputation: Array.isArray(inv.url_reputation) ? inv.url_reputation : [],
   };
 }
 

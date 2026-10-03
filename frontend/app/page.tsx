@@ -21,6 +21,7 @@ export default function CommandCenter() {
   const [pack, setPack] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [loadMsg, setLoadMsg] = useState('');
+  const [ocrBusy, setOcrBusy] = useState(false);
   const [backendOk, setBackendOk] = useState<boolean | null>(null);
 
   const [view, setView] = useState<View>('graph');
@@ -349,6 +350,26 @@ export default function CommandCenter() {
               <div style={{ display: 'grid', gap: 10, alignContent: 'start' }}>
                 <label className="dim" style={{ fontSize: 11, letterSpacing: '.12em' }} htmlFor="in-upi">UPI PAYMENT DETAILS</label>
                 <textarea id="in-upi" className="field" rows={3} value={fUpi} onChange={e => setFUpi(e.target.value)} placeholder="abc-invest@upi, Rs 50,000…" />
+                <label className="btn" style={{ fontSize: 12, textAlign: 'center' }} htmlFor="in-shot">
+                  {ocrBusy ? 'READING SCREENSHOT…' : '📷 Read from payment screenshot (OCR)'}
+                </label>
+                <input id="in-shot" type="file" accept="image/png,image/jpeg,image/webp" style={{ display: 'none' }}
+                  onChange={async e => {
+                    const f = e.target.files?.[0];
+                    e.target.value = '';
+                    if (!f) return;
+                    setOcrBusy(true);
+                    try {
+                      const r = await api.parseImage(f);
+                      const p = r.parsed || {};
+                      const bits = [p.beneficiary_vpa, p.amount_inr ? `Rs ${p.amount_inr}` : '', p.txn_id].filter(Boolean);
+                      if (bits.length) setFUpi(bits.join(', '));
+                      else alert('Screenshot me UPI details nahi mile — text paste karo.');
+                    } catch (err: any) {
+                      alert(err?.message || 'OCR failed — text paste karo.');
+                    }
+                    setOcrBusy(false);
+                  }} />
                 <label className="dim" style={{ fontSize: 11, letterSpacing: '.12em' }} htmlFor="in-hash">CRYPTO TX HASH (OPTIONAL)</label>
                 <input id="in-hash" className="field mono" value={fHash} onChange={e => setFHash(e.target.value)} placeholder="0x…" />
                 <label style={{ display: 'flex', gap: 10, fontSize: 13, lineHeight: 1.5 }} htmlFor="in-consent">
